@@ -7,20 +7,19 @@ function trailSqlConn() {
     var radios = document.getElementsByName('revenue');
     var value;
     var year = document.getElementById('year').value;
+
+    // this loop is responsible to get the value of the selected radio button
     for (var i = 0, length = radios.length; i < length; i++) {
         if (radios[i].checked) {
-            // do whatever you want with the checked radio
-
             value = radios[i].value;
+
             // only one radio can be logically checked, don't check the rest
             break;
         }
     }
 
     // https://gomakethings.com/converting-strings-to-numbers-with-vanilla-javascript/
-
     var yearInt = Number(year);
-    var valueInt = Number(year);
 
 
     // http://www.tutorialspoint.com/html5/html5_web_sql.htm
@@ -29,8 +28,13 @@ function trailSqlConn() {
 
     // this block creates and adds data to the database
     db.transaction(function (tx) {
-        tx.executeSql('DROP TABLE MOVIE');
+
+
+        // command below creates the table by the name of movie id it does not exists
         tx.executeSql('CREATE TABLE IF NOT EXISTS MOVIE (rank unique, title, revenue, year)');
+
+
+        // execute statements below add the entery to the database if they does not exist
         tx.executeSql('INSERT INTO MOVIE (rank , title, revenue, year) VALUES (1, "Avatar", 2787965087, 2009111)');
         tx.executeSql('INSERT INTO MOVIE (rank , title, revenue, year) VALUES (2, "Titanic", 2187463944, 1997)');
         tx.executeSql('INSERT INTO MOVIE (rank , title, revenue, year) VALUES (3, "Star Wars: The Force Awakens", 2068223624, 2015)');
@@ -82,21 +86,68 @@ function trailSqlConn() {
         tx.executeSql('INSERT INTO MOVIE (rank , title, revenue, year) VALUES (49,"Harry Potter and the Goblet of Fire",896911078,2005)');
         tx.executeSql('INSERT INTO MOVIE (rank , title, revenue, year) VALUES (50,"Spider-Man 3",890871626,2007)');
 
-    })
+    });
 
 
     // this block retrieves the data from database based on the user's search criteria
     db.transaction(function (tx) {
 
-            tx.executeSql('SELECT * FROM MOVIE WHERE year=?', [yearInt], function (tx, results) {
+        // this loop is to get the relevant movies based on the search criteria if no year is not provided  as input
+        if (yearInt == 0) {
+            tx.executeSql('SELECT * FROM MOVIE', [], function (tx, results) {
                 var len = results.rows.length, i;
                 msg = "<p>Found rows: " + len + "</p>";
-                // document.querySelector('#status').innerHTML += msg;
 
                 document.querySelector('#status').innerHTML = "<br/><b>Results:</b><br/><br/>";
 
                 for (i = 0; i < len; i++) {
-                    if (valueInt == 0) {
+                    if (value == 0) {
+                        if (Number(results.rows.item(i).revenue) < 1000000000) {
+                            msg = "<b>" + results.rows.item(i).rank + "</b> : " +
+                                "<b>" + results.rows.item(i).title + "</b> : " +
+                                "<b>$ " + results.rows.item(i).revenue + "</b> : " +
+                                "<b>" + results.rows.item(i).year + "</b><br />";
+                            document.querySelector('#status').innerHTML += msg;
+                        }
+                    } else if (value == 1) {
+                        if ((results.rows.item(i).revenue >= 1000000000) && (results.rows.item(i).revenue <= 2000000000)) {
+                            msg = "<b>" + results.rows.item(i).rank + "</b> : " +
+                                "<b>" + results.rows.item(i).title + "</b> : " +
+                                "<b>$ " + results.rows.item(i).revenue + "</b> : " +
+                                "<b>" + results.rows.item(i).year + "</b><br />";
+                            document.querySelector('#status').innerHTML += msg;
+                        }
+                    } else if (value == 2) {
+                        if (Number(results.rows.item(i).revenue) > 2000000000) {
+                            msg = "<b>" + results.rows.item(i).rank + "</b> : " +
+                                "<b>" + results.rows.item(i).title + "</b> : " +
+                                "<b>$ " + results.rows.item(i).revenue + "</b> : " +
+                                "<b>" + results.rows.item(i).year + "</b><br />";
+                            document.querySelector('#status').innerHTML += msg;
+                        }
+                    } else {
+                        msg = "<b>" + results.rows.item(i).rank + "</b> : " +
+                            "<b>" + results.rows.item(i).title + "</b> : " +
+                            "<b>$ " + results.rows.item(i).revenue + "</b> : " +
+                            "<b>" + results.rows.item(i).year + "</b><br />";
+                        document.querySelector('#status').innerHTML += msg;
+                    }
+
+                }
+            }, null);
+        }
+
+        // this loop is to get the relevant movies based on the search criteria if year is provided as input
+        else
+            {
+            tx.executeSql('SELECT * FROM MOVIE WHERE year=?', [yearInt], function (tx, results) {
+                var len = results.rows.length, i;
+                msg = "<p>Found rows: " + len + "</p>";
+
+                document.querySelector('#status').innerHTML = "<br/><b>Results:</b><br/><br/>";
+
+                for (i = 0; i < len; i++) {
+                    if (value == 0) {
                         if (Number(results.rows.item(i).revenue) < 1000000000) {
                             msg = "<b>" + results.rows.item(i).rank + "</b> : " +
                                 "<b>" + results.rows.item(i).title + "</b> : " +
@@ -131,6 +182,7 @@ function trailSqlConn() {
                 }
             }, null);
 
+        }
 
 
     });
